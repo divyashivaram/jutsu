@@ -1,4 +1,5 @@
 import { JUTSUS, RANKS, SEALS, sealById } from "./data.js";
+import { sealDiagram } from "./diagrams.js";
 import * as game from "./game.js";
 import { VisionEngine, loadTemplates, saveTemplate, clearTemplates, scoreSeal } from "./vision.js";
 
@@ -54,8 +55,8 @@ function renderDojo() {
     const p = game.state.seals[s.id];
     return `<div class="seal-card ${p?.done ? "done" : ""}" data-seal="${s.id}">
       <span class="kanji">${s.kanji}</span>
-      <div class="emoji">${s.emoji}</div>
-      <div class="name">${s.name}</div>
+      ${sealDiagram(s.id)}
+      <div class="name">${s.emoji} ${s.name}</div>
       <div class="romaji">${s.romaji}</div>
       ${p?.best ? `<div class="best">best ${(p.best * 100).toFixed(0)}%</div>` : ""}
       ${templates[s.id] ? `<div class="cal-tag">calibrated</div>` : ""}
@@ -128,8 +129,9 @@ function setMeter(score) {
 
 function renderTargetSeal(seal, extra = "") {
   $("#target-card").innerHTML = `
-    <div><span class="emoji">${seal.emoji}</span><span class="kanji">${seal.kanji}</span></div>
-    <h3>${seal.name} <span class="romaji">(${seal.romaji})</span></h3>
+    <h3>${seal.emoji} ${seal.name} <span class="kanji">${seal.kanji}</span>
+      <span class="romaji">(${seal.romaji})</span></h3>
+    ${sealDiagram(seal.id)}
     <p class="hint">${seal.hint}</p>${extra}`;
 }
 
@@ -296,8 +298,8 @@ function renderCalibrateGrid() {
   $("#calibrate-grid").innerHTML = SEALS.map(
     (s) => `<div class="seal-card" data-cal="${s.id}">
       <span class="kanji">${s.kanji}</span>
-      <div class="emoji">${s.emoji}</div>
-      <div class="name">${s.name}</div>
+      ${sealDiagram(s.id)}
+      <div class="name">${s.emoji} ${s.name}</div>
       ${templates[s.id] ? `<div class="cal-tag">calibrated ✓</div>` : `<div class="romaji">tap to record</div>`}
     </div>`,
   ).join("");
