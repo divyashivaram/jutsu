@@ -40,8 +40,9 @@ const NONE = [0, 0, 0, 0, 0];
 const ALL = [1, 1, 1, 1, 1];
 const POINTER = [0, 1, 1, 0, 0]; // index + middle
 
-// One layout per seal; hands listed back-to-front.
-const LAYOUTS = {
+// One layout per seal; hands listed back-to-front. Also drives the camera
+// ghost overlay (ghost.js), so hand order/coords are shared with it.
+export const LAYOUTS = {
   tiger: [
     { fingers: POINTER, x: 106, y: 112, rot: -8 },
     { fingers: POINTER, x: 134, y: 112, rot: 8, mirror: true },
@@ -92,9 +93,28 @@ const LAYOUTS = {
   ],
 };
 
-export function sealDiagram(sealId) {
+// Learn-mode fold animation: interpolate a hand from open-and-spread (k=0) to
+// its place in the seal (k=1). Mirror is binary, so mirrored (right) hands
+// start right of center and plain (left) hands start left.
+export function foldPose(pose, k) {
+  const startX = pose.mirror ? 170 : 70;
+  return {
+    fingers: pose.fingers.map((f) => 1 + (f - 1) * k),
+    x: startX + (pose.x - startX) * k,
+    y: 115 + (pose.y - 115) * k,
+    rot: (pose.rot ?? 0) * k || 0, // `|| 0` normalizes -0
+    mirror: pose.mirror ?? false,
+  };
+}
+
+// One frame of the fold animation; k=1 is the finished seal.
+export function sealDiagramFrame(sealId, k) {
   const layout = LAYOUTS[sealId];
   if (!layout) return "";
   return `<svg viewBox="0 0 240 210" class="seal-diagram" role="img"
-    aria-label="hand position diagram">${layout.map(hand).join("")}</svg>`;
+    aria-label="hand position diagram">${layout.map((p) => hand(foldPose(p, k))).join("")}</svg>`;
+}
+
+export function sealDiagram(sealId) {
+  return sealDiagramFrame(sealId, 1);
 }

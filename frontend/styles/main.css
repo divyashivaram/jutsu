@@ -263,7 +263,8 @@ button.danger { border-color: rgba(255, 100, 100, 0.4); color: #ff9b9b; }
 .target-card h3 { margin: 0.3rem 0 0.1rem; }
 .target-card .romaji { color: var(--muted); font-size: 0.85rem; font-weight: 400; }
 .target-card .hint { color: var(--muted); font-size: 0.88rem; margin-top: 0.6rem; line-height: 1.45; }
-.target-card .seal-diagram { width: min(240px, 90%); margin-top: 0.4rem; }
+/* Smaller since training: the on-camera ghost guide is the primary reference. */
+.target-card .seal-diagram { width: 130px; margin-top: 0.4rem; opacity: 0.85; }
 .seal-card .seal-diagram { width: 104px; margin: 0.1rem auto; display: block; }
 
 #hold-ring-wrap { position: relative; width: 120px; height: 120px; }
@@ -289,6 +290,78 @@ button.danger { border-color: rgba(255, 100, 100, 0.4); color: #ff9b9b; }
 }
 
 .drill-hint { color: var(--muted); text-align: center; min-height: 2.4em; font-size: 0.9rem; }
+
+/* ---- Learn mode ---- */
+.learn-layout {
+  max-width: 620px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  text-align: center;
+}
+.learn-title { margin: 0; font-size: 1.3rem; }
+.learn-title .kanji { color: var(--chakra); margin-left: 0.3rem; }
+.learn-title .romaji { color: var(--muted); font-size: 0.9rem; font-weight: 400; }
+.learn-anim {
+  background: var(--ink-2);
+  border: 1px solid rgba(147, 160, 180, 0.2);
+  border-radius: var(--radius);
+  padding: 0.8rem;
+  width: 100%;
+}
+.learn-anim .seal-diagram { width: min(440px, 100%); display: block; margin: 0 auto; }
+.learn-actions { display: flex; gap: 0.7rem; align-items: center; }
+.learn-actions .primary { padding: 0.6rem 1.6rem; }
+.seq-strip .step[data-learn-step] { cursor: pointer; }
+
+/* ---- Celebration overlay ---- */
+.celebration {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  text-align: center;
+  background: radial-gradient(ellipse at center, rgba(16, 20, 28, 0.55), rgba(16, 20, 28, 0.85));
+  animation: celebration-in 0.35s ease-out;
+  padding: 1rem;
+}
+@keyframes celebration-in {
+  from { opacity: 0; transform: scale(1.06); }
+  to { opacity: 1; transform: scale(1); }
+}
+.celebration-emoji { font-size: 3.2rem; animation: celebration-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1); }
+@keyframes celebration-pop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+.celebration h3 { margin: 0; font-size: 1.5rem; }
+.celebration-accuracy {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--good);
+  font-variant-numeric: tabular-nums;
+}
+.celebration-detail { color: var(--text); font-size: 1rem; line-height: 1.6; min-height: 1.6em; }
+.celebration-detail .grade { font-weight: 800; font-size: 1.15rem; }
+.celebration-actions { display: flex; gap: 0.7rem; margin-top: 0.7rem; }
+.confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.confetti::before, .confetti::after {
+  position: absolute;
+  top: -2rem;
+  font-size: 1.6rem;
+  animation: confetti-fall 2.6s linear infinite;
+}
+.confetti::before { content: "🎊"; left: 22%; }
+.confetti::after { content: "✨"; left: 68%; animation-delay: 1.2s; }
+@keyframes confetti-fall {
+  from { transform: translateY(0) rotate(0deg); opacity: 1; }
+  to { transform: translateY(70vh) rotate(340deg); opacity: 0; }
+}
 
 /* ---- Leaderboard ---- */
 .board { width: 100%; border-collapse: collapse; }

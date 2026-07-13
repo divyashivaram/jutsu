@@ -1,5 +1,7 @@
+import { BACKEND } from "./config.js";
 import { JUTSUS, RANKS, SEALS, sealById } from "./data.js";
-import { sealDiagram } from "./diagrams.js";
+import { sealDiagram, sealDiagramFrame } from "./diagrams.js";
+import { sealGhost } from "./ghost.js";
 import * as game from "./game.js";
 import { VisionEngine, loadTemplates, saveTemplate, clearTemplates, scoreSeal } from "./vision.js";
 
@@ -29,6 +31,7 @@ function showScreen(name) {
     b.classList.toggle("active", b.dataset.nav === name);
   }
   if (name !== "train") stopDrill();
+  if (name !== "learn") stopLearn();
   if (name === "dojo") renderDojo();
   if (name === "leaderboard") renderLeaderboard();
   if (name === "settings") renderCalibrateGrid();
@@ -81,7 +84,7 @@ function renderDojo() {
 
 $("#seal-grid").addEventListener("click", (e) => {
   const card = e.target.closest("[data-seal]");
-  if (card) startLesson(card.dataset.seal);
+  if (card) showLearn({ sealIds: [card.dataset.seal] });
 });
 
 $("#jutsu-list").addEventListener("click", (e) => {
@@ -92,7 +95,80 @@ $("#jutsu-list").addEventListener("click", (e) => {
     toast(`Reach ${jutsu.rank} rank to unlock this scroll 🔒`);
     return;
   }
-  startJutsu(jutsu.id);
+  showLearn({ sealIds: jutsu.seq, jutsuId: jutsu.id, title: jutsu.name });
+});
+
+// ---------- Learn mode (animated fold demo, no camera) ----------
+
+let learn = null; // { sealIds, jutsuId?, title?, idx, raf }
+
+const LEARN_PERIOD = 3400; // ms per open → fold → hold loop
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+// Hold open, ease through the fold, then hold the finished seal.
+const foldK = (t) => (t < 0.18 ? 0 : t < 0.62 ? easeInOut((t - 0.18) / 0.44) : 1);
+
+function showLearn(opts) {
+  stopLearn();
+  showScreen("learn");
+  learn = { idx: 0, ...opts };
+  renderLearn();
+  learn.raf = requestAnimationFrame(learnLoop);
+}
+
+function stopLearn() {
+  if (!learn) return;
+  cancelAnimationFrame(learn.raf);
+  learn = null;
+}
+
+function learnLoop(now) {
+  if (!learn) return;
+  const k = foldK((now % LEARN_PERIOD) / LEARN_PERIOD);
+  $("#learn-anim").innerHTML = sealDiagramFrame(learn.sealIds[learn.idx], k);
+  learn.raf = requestAnimationFrame(learnLoop);
+}
+
+function renderLearn() {
+  const seal = sealById(learn.sealIds[learn.idx]);
+  $("#learn-title").innerHTML = learn.jutsuId
+    ? `${learn.title} <span class="romaji">— seal ${learn.idx + 1}/${learn.sealIds.length}: ${seal.name}</span>`
+    : `${seal.emoji} ${seal.name} <span class="kanji">${seal.kanji}</span>
+       <span class="romaji">(${seal.romaji})</span>`;
+  $("#learn-hint").textContent = seal.hint;
+  const strip = $("#learn-strip");
+  const multi = learn.sealIds.length > 1;
+  strip.classList.toggle("hidden", !multi);
+  $("#learn-prev").classList.toggle("hidden", !multi);
+  $("#learn-next").classList.toggle("hidden", !multi);
+  if (multi) {
+    strip.innerHTML = learn.sealIds
+      .map(
+        (id, i) => `<span class="step ${i === learn.idx ? "current" : ""}" data-learn-step="${i}"
+          title="${sealById(id).name}">${sealById(id).emoji}</span>`,
+      )
+      .join("");
+  }
+}
+
+function learnStep(delta) {
+  const n = learn.sealIds.length;
+  learn.idx = (learn.idx + delta + n) % n;
+  renderLearn();
+}
+
+$("#learn-prev").addEventListener("click", () => learnStep(-1));
+$("#learn-next").addEventListener("click", () => learnStep(1));
+$("#learn-strip").addEventListener("click", (e) => {
+  const step = e.target.closest("[data-learn-step]");
+  if (!step) return;
+  learn.idx = Number(step.dataset.learnStep);
+  renderLearn();
+});
+
+$("#learn-test").addEventListener("click", () => {
+  const { sealIds, jutsuId } = learn;
+  if (jutsuId) startJutsu(jutsuId);
+  else startLesson(sealIds[0]);
 });
 
 // ---------- Camera / drill plumbing ----------
@@ -135,8 +211,17 @@ function renderTargetSeal(seal, extra = "") {
     <p class="hint">${seal.hint}</p>${extra}`;
 }
 
+// Target seal of the active drill, if there is one to mimic (calibration has none).
+function targetSealId() {
+  if (drill?.type === "lesson") return drill.sealId;
+  if (drill?.type === "jutsu") return drill.seq[drill.stepIdx];
+  return null;
+}
+
 function stopDrill() {
   drill = null;
+  hideCelebration();
+  engine?.setGhost(null);
   engine?.stop();
   engine?.shutdown();
 }
@@ -144,7 +229,10 @@ function stopDrill() {
 async function enterTrainScreen() {
   showScreen("train");
   const ok = await ensureVision();
-  if (ok && drill) engine.start(onFrame);
+  if (ok && drill) {
+    engine.setGhost(sealGhost(targetSealId()));
+    engine.start(onFrame);
+  }
   return ok;
 }
 
@@ -228,15 +316,25 @@ async function startLesson(sealId) {
   $("#seq-strip").classList.add("hidden");
   renderTargetSeal(seal);
   setRing(0, drill.ringLabel);
-  $("#drill-hint").textContent = "Form the seal and hold it steady.";
+  $("#drill-hint").textContent = "Line your hands up with the ghost guide and hold steady.";
   await enterTrainScreen();
 }
 
 function finishLesson() {
   const { sealId, peak } = drill;
+  const seal = sealById(sealId);
   const { xpGained, rankUp } = game.recordSealLesson(sealId, peak);
   drill = null;
-  celebrate(`${sealById(sealId).emoji} ${sealById(sealId).name} mastered! +${xpGained} XP`, rankUp);
+  showCelebration({
+    emoji: "🎉",
+    title: `${seal.emoji} ${seal.name} mastered!`,
+    accuracy: peak,
+    details: [
+      xpGained ? `+${xpGained} XP` : "already mastered — keep sharpening ✨",
+      ...(rankUp ? [`🎖️ Promoted to ${rankUp.name}!`] : []),
+    ],
+    restart: () => startLesson(sealId),
+  });
 }
 
 // ---------- Jutsu drill ----------
@@ -273,7 +371,10 @@ function renderJutsuStep() {
       return `<span class="step ${cls}" title="${sealById(id).name}">${sealById(id).emoji}</span>`;
     })
     .join("");
-  if (drill.stepIdx < drill.seq.length) renderTargetSeal(sealById(drill.seq[drill.stepIdx]));
+  if (drill.stepIdx < drill.seq.length) {
+    renderTargetSeal(sealById(drill.seq[drill.stepIdx]));
+    engine?.setGhost(sealGhost(targetSealId()));
+  }
 }
 
 function finishJutsu() {
@@ -281,15 +382,52 @@ function finishJutsu() {
   const avg = drill.peaks.reduce((s, v) => s + v, 0) / drill.peaks.length;
   const { grade, xpGained, rankUp } = game.recordJutsu(drill.jutsuId, avg);
   drill = null;
-  celebrate(`${jutsu.name} complete — rank ${grade}! +${xpGained} XP`, rankUp);
+  showCelebration({
+    emoji: grade === "S" ? "🌟" : "🌀",
+    title: `${jutsu.name} complete!`,
+    accuracy: avg,
+    details: [
+      `Rank <span class="grade ${grade}">${grade}</span> · +${xpGained} XP`,
+      ...(rankUp ? [`🎖️ Promoted to ${rankUp.name}!`] : []),
+    ],
+    restart: () => startJutsu(jutsu.id),
+  });
 }
 
-function celebrate(message, rankUp) {
-  stopDrill();
-  showScreen("dojo");
-  toast(message);
-  if (rankUp) setTimeout(() => toast(`🎖️ Promoted to ${rankUp.name}!`), 2200);
+// ---------- Celebration overlay (shown over the live camera) ----------
+
+let celebration = null; // { restart }
+
+function showCelebration({ emoji, title, accuracy, details, restart }) {
+  // Freeze scoring but keep the camera streaming behind the overlay.
+  engine?.stop();
+  engine?.setGhost(null);
+  const overlay = $("#overlay");
+  overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height);
+  celebration = { restart };
+  $("#celebration-emoji").textContent = emoji;
+  $("#celebration-title").textContent = title;
+  $("#celebration-accuracy").textContent = `${Math.round(accuracy * 100)}% accuracy`;
+  $("#celebration-detail").innerHTML = details.map((d) => `<div>${d}</div>`).join("");
+  $("#celebration").classList.remove("hidden");
+  renderHeader();
 }
+
+function hideCelebration() {
+  celebration = null;
+  $("#celebration").classList.add("hidden");
+}
+
+$("#celebration-again").addEventListener("click", () => {
+  const restart = celebration?.restart;
+  hideCelebration();
+  restart?.();
+});
+
+$("#celebration-done").addEventListener("click", () => {
+  hideCelebration();
+  showScreen("dojo");
+});
 
 // ---------- Calibration ----------
 
@@ -417,5 +555,9 @@ function toast(message) {
 
 // ---------- Boot ----------
 
+if (!BACKEND) {
+  $('[data-nav="leaderboard"]').classList.add("hidden");
+  $("#auth-button").classList.add("hidden");
+}
 renderDojo();
 if (game.auth) game.pullProgress().then(renderDojo).catch(() => {});

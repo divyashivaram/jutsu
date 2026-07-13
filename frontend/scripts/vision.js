@@ -3,6 +3,8 @@
 
 import { FilesetResolver, HandLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
+import { ghostPlacement } from "./ghost.js";
+
 const MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
@@ -144,6 +146,12 @@ export class VisionEngine {
     this.landmarker = null;
     this.running = false;
     this.onFrame = null;
+    this.ghost = null;
+  }
+
+  // hands = sealGhost(...) output (layout-space landmarks) or null to hide.
+  setGhost(hands) {
+    this.ghost = hands;
   }
 
   async init() {
@@ -204,6 +212,7 @@ export class VisionEngine {
   draw(result) {
     const { ctx, canvas } = this;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.drawGhost();
     ctx.lineWidth = 3;
     for (const lm of result.landmarks) {
       ctx.strokeStyle = "rgba(79, 195, 247, 0.85)";
@@ -220,5 +229,42 @@ export class VisionEngine {
         ctx.fill();
       }
     }
+  }
+
+  // Dashed magenta target skeletons over a dark halo so they read on any
+  // background (skin is nearly amber — never draw the ghost in warm tones).
+  drawGhost() {
+    if (!this.ghost) return;
+    const { ctx, canvas } = this;
+    const { s, ox, oy } = ghostPlacement(canvas.width, canvas.height);
+    // Canvas is displayed mirrored (selfie view); flip x so ghosts appear as authored.
+    const px = (p) => canvas.width - (ox + p.x * s);
+    const py = (p) => oy + p.y * s;
+    ctx.save();
+    ctx.setLineDash([10, 7]);
+    for (const [i, hand] of this.ghost.entries()) {
+      ctx.globalAlpha = i === 0 && this.ghost.length > 1 ? 0.55 : 1; // back hand fainter
+      const bones = () => {
+        ctx.beginPath();
+        for (const [a, b] of BONES) {
+          ctx.moveTo(px(hand[a]), py(hand[a]));
+          ctx.lineTo(px(hand[b]), py(hand[b]));
+        }
+        ctx.stroke();
+      };
+      ctx.lineWidth = 9;
+      ctx.strokeStyle = "rgba(10, 14, 26, 0.65)";
+      bones();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "rgba(255, 92, 200, 0.95)";
+      bones();
+      ctx.fillStyle = "rgba(255, 92, 200, 0.85)";
+      for (const p of hand) {
+        ctx.beginPath();
+        ctx.arc(px(p), py(p), 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
   }
 }

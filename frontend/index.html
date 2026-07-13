@@ -32,6 +32,22 @@
       <div id="jutsu-list" class="jutsu-list"></div>
     </section>
 
+    <!-- Learn (animated fold demo; every seal/jutsu passes through here before the test) -->
+    <section id="screen-learn" class="screen hidden">
+      <button class="back ghost" data-nav="dojo">← Back to Dojo</button>
+      <div class="learn-layout">
+        <h2 id="learn-title" class="learn-title"></h2>
+        <div id="learn-strip" class="seq-strip hidden"></div>
+        <div id="learn-anim" class="learn-anim"></div>
+        <p id="learn-hint" class="drill-hint"></p>
+        <div class="learn-actions">
+          <button id="learn-prev" class="ghost">←</button>
+          <button id="learn-test" class="primary">Start test 🎯</button>
+          <button id="learn-next" class="ghost">→</button>
+        </div>
+      </div>
+    </section>
+
     <!-- Training (seal lesson + jutsu drill share this) -->
     <section id="screen-train" class="screen hidden">
       <button class="back ghost" data-nav="dojo">← Back to Dojo</button>
@@ -41,6 +57,17 @@
             <video id="video" playsinline muted></video>
             <canvas id="overlay"></canvas>
             <div id="cam-status" class="cam-status">Starting camera…</div>
+            <div id="celebration" class="celebration hidden">
+              <div class="confetti" aria-hidden="true"></div>
+              <div class="celebration-emoji" id="celebration-emoji"></div>
+              <h3 id="celebration-title"></h3>
+              <div id="celebration-accuracy" class="celebration-accuracy"></div>
+              <div id="celebration-detail" class="celebration-detail"></div>
+              <div class="celebration-actions">
+                <button id="celebration-again" class="ghost">Train again 🔁</button>
+                <button id="celebration-done" class="primary">Back to Dojo</button>
+              </div>
+            </div>
           </div>
           <div class="meter-wrap">
             <div class="meter"><div id="meter-fill" class="meter-fill"></div></div>

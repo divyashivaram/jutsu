@@ -30,13 +30,31 @@ uv run pytest
   (gitignored); tests use `tmp_path`.
 - `frontend/scripts/data.js` — the 12 seals (with heuristic feature signatures), 6 jutsus,
   ranks, XP rules. Content lives here — add jutsus/seals in this one file.
+- `frontend/scripts/config.js` — `BACKEND` flag; the static deploy overwrites it to false,
+  which hides login + leaderboard (guest mode only).
+- `frontend/scripts/diagrams.js` — schematic SVG seal diagrams; exports per-seal `LAYOUTS`
+  (hand poses) shared with `ghost.js`, plus `foldPose`/`sealDiagramFrame` for the learn-mode
+  fold animation (tested in `tests/diagrams.test.mjs`).
+- `frontend/scripts/ghost.js` — parametric 21-landmark "ghost" target hands per seal, drawn
+  on the camera as dashed magenta skeletons with a dark halo, anchored lower-center via
+  `ghostPlacement` (never warm tones or frame-center — that's where face/skin sits).
+  Pure geometry — tested via `node --test tests/*.test.mjs` (run alongside the gates).
 - `frontend/scripts/vision.js` — camera + MediaPipe (CDN: jsdelivr wasm + Google-hosted
   model, so first load needs internet), 14-dim feature extraction (finger extensions ×10,
   palm gap, vertical offset, crossedness, flatness), heuristic + template classifier.
 - `frontend/scripts/game.js` — progress state, rank-up rules, XP, localStorage-first with
   debounced sync to the API when logged in (guest mode works fully offline).
 - `frontend/scripts/main.js` — screens, drill loop (seal lesson / jutsu sequence /
-  calibration), auth modal, leaderboard.
+  calibration), learn mode (animated fold demo; every seal/jutsu card opens it first,
+  "Start test" launches the drill), celebration overlay (accuracy % over the live camera
+  on completion), auth modal, leaderboard.
+
+## Static deploy (divyashivaram.in/jutsu)
+
+`scripts/deploy-pages.sh` mirrors `frontend/` into the public `divyashivaram/jutsu` repo
+(GitHub Pages, main branch, root — the divyashivaram.github.io CNAME puts project sites
+under divyashivaram.in) with `config.js` rewritten to `BACKEND = false`. That repo is a
+build artifact — never edit it directly. Re-run the script after any frontend change.
 
 ## Conventions & decisions
 
