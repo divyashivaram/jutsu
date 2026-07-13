@@ -1,0 +1,40 @@
+[project]
+name = "jutsu-master"
+version = "0.1.0"
+description = "Vision-based Naruto hand-seal trainer: MediaPipe hand tracking + gamified rank progression"
+readme = "README.md"
+authors = [
+    { name = "Divya Sivaram", email = "div.shivaram@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.139.0",
+    "pydantic>=2.13.4",
+    "uvicorn[standard]>=0.51.0",
+]
+
+[project.scripts]
+jutsu-master = "jutsu_master:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "ARG", "SIM"]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy>=2.3.0",
+    "pre-commit>=4.6.0",
+    "pytest>=9.1.1",
+    "ruff>=0.15.21",
+]

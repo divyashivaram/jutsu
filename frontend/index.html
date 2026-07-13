@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jutsu Master — hand-seal trainer</title>
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍥</text></svg>" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-kanji">術</span> Jutsu Master</div>
+    <nav class="nav">
+      <button data-nav="dojo" class="active">Dojo</button>
+      <button data-nav="leaderboard">Leaderboard</button>
+      <button data-nav="settings">Settings</button>
+    </nav>
+    <div class="identity">
+      <span id="rank-badge" class="rank-badge"></span>
+      <span id="xp-badge" class="xp-badge"></span>
+      <button id="auth-button" class="ghost"></button>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- Dojo -->
+    <section id="screen-dojo" class="screen">
+      <div id="rank-path" class="rank-path"></div>
+      <h2 class="section-title">Hand Seals <span class="sub">— Academy training</span></h2>
+      <div id="seal-grid" class="seal-grid"></div>
+      <h2 class="section-title">Jutsu Scrolls <span class="sub">— sequences by rank</span></h2>
+      <div id="jutsu-list" class="jutsu-list"></div>
+    </section>
+
+    <!-- Training (seal lesson + jutsu drill share this) -->
+    <section id="screen-train" class="screen hidden">
+      <button class="back ghost" data-nav="dojo">← Back to Dojo</button>
+      <div class="train-layout">
+        <div class="cam-panel">
+          <div class="cam-wrap">
+            <video id="video" playsinline muted></video>
+            <canvas id="overlay"></canvas>
+            <div id="cam-status" class="cam-status">Starting camera…</div>
+          </div>
+          <div class="meter-wrap">
+            <div class="meter"><div id="meter-fill" class="meter-fill"></div></div>
+            <span id="meter-label" class="meter-label">0%</span>
+          </div>
+        </div>
+        <div class="drill-panel">
+          <div id="seq-strip" class="seq-strip hidden"></div>
+          <div id="target-card" class="target-card"></div>
+          <div id="hold-ring-wrap">
+            <svg viewBox="0 0 120 120" class="hold-ring">
+              <circle cx="60" cy="60" r="52" class="ring-bg" />
+              <circle id="ring-fg" cx="60" cy="60" r="52" class="ring-fg" />
+            </svg>
+            <div id="ring-text" class="ring-text"></div>
+          </div>
+          <p id="drill-hint" class="drill-hint"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leaderboard -->
+    <section id="screen-leaderboard" class="screen hidden">
+      <h2 class="section-title">Shinobi Rankings</h2>
+      <table class="board"><thead><tr><th>#</th><th>Ninja</th><th>Rank</th><th>XP</th></tr></thead>
+        <tbody id="board-body"></tbody>
+      </table>
+      <p id="board-empty" class="muted hidden">No shinobi registered yet.</p>
+    </section>
+
+    <!-- Settings / calibration -->
+    <section id="screen-settings" class="screen hidden">
+      <h2 class="section-title">Calibration</h2>
+      <p class="muted">Detection ships with built-in approximations of each seal. Recording your own
+        reference makes scoring match <em>your</em> hands — do this once per device for best results.</p>
+      <div id="calibrate-grid" class="seal-grid"></div>
+      <div class="settings-actions">
+        <button id="clear-templates" class="ghost">Clear calibration</button>
+        <button id="reset-progress" class="ghost danger">Reset progress</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Auth modal -->
+  <dialog id="auth-modal">
+    <form id="auth-form" method="dialog">
+      <h3>Shinobi Registration</h3>
+      <input id="auth-username" placeholder="ninja name" autocomplete="username"
+             minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" required />
+      <input id="auth-password" type="password" placeholder="password (8+ chars)"
+             autocomplete="current-password" minlength="8" required />
+      <p id="auth-error" class="error"></p>
+      <div class="modal-actions">
+        <button type="submit" data-mode="login">Log in</button>
+        <button type="submit" data-mode="register" class="primary">Register</button>
+      </div>
+      <button type="button" id="auth-cancel" class="ghost">Train as guest</button>
+    </form>
+  </dialog>
+
+  <!-- Reward toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="scripts/main.js"></script>
+</body>
+</html>

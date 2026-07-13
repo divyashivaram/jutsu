@@ -1,0 +1,340 @@
+:root {
+  --ink: #10141c;
+  --ink-2: #1a2230;
+  --paper: #f4e9d3;
+  --chakra: #4fc3f7;
+  --chakra-dim: #2b6f8e;
+  --flame: #ff8a3d;
+  --good: #6fdc8c;
+  --text: #e8ecf3;
+  --muted: #93a0b4;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(79, 195, 247, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 10% 110%, rgba(255, 138, 61, 0.06), transparent 60%),
+    var(--ink);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ---- Top bar ---- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.8rem 1.4rem;
+  border-bottom: 1px solid rgba(79, 195, 247, 0.15);
+  background: rgba(16, 20, 28, 0.85);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
+.brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.02em; }
+.brand-kanji {
+  color: var(--chakra);
+  font-size: 1.5rem;
+  vertical-align: -2px;
+  margin-right: 0.15rem;
+}
+
+.nav { display: flex; gap: 0.3rem; flex: 1; }
+.nav button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font: inherit;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.nav button.active { color: var(--text); background: rgba(79, 195, 247, 0.12); }
+.nav button:hover { color: var(--text); }
+
+.identity { display: flex; align-items: center; gap: 0.7rem; }
+.rank-badge {
+  background: rgba(79, 195, 247, 0.12);
+  border: 1px solid rgba(79, 195, 247, 0.35);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+.xp-badge { color: var(--flame); font-weight: 600; font-size: 0.9rem; }
+
+/* ---- Layout ---- */
+#app { max-width: 1080px; margin: 0 auto; padding: 1.6rem 1.4rem 4rem; }
+.screen.hidden, .hidden { display: none !important; }
+.section-title { margin: 2rem 0 0.9rem; font-size: 1.15rem; }
+.section-title .sub { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
+.muted { color: var(--muted); }
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 10px;
+  border: 1px solid rgba(79, 195, 247, 0.35);
+  background: rgba(79, 195, 247, 0.12);
+  color: var(--text);
+  padding: 0.5rem 1rem;
+}
+button.primary { background: var(--chakra); color: #06222f; font-weight: 700; border: none; }
+button.ghost { background: none; border-color: rgba(147, 160, 180, 0.35); color: var(--muted); }
+button.ghost:hover { color: var(--text); }
+button.danger { border-color: rgba(255, 100, 100, 0.4); color: #ff9b9b; }
+
+/* ---- Rank path ---- */
+.rank-path { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.rank-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(147, 160, 180, 0.2);
+  background: var(--ink-2);
+  min-width: 108px;
+  opacity: 0.45;
+}
+.rank-node .icon { font-size: 1.5rem; }
+.rank-node .label { font-size: 0.8rem; color: var(--muted); }
+.rank-node.reached { opacity: 1; border-color: rgba(79, 195, 247, 0.45); }
+.rank-node.current {
+  opacity: 1;
+  border-color: var(--chakra);
+  box-shadow: 0 0 18px rgba(79, 195, 247, 0.25);
+}
+.rank-node.current .label { color: var(--chakra); font-weight: 600; }
+.rank-arrow { color: var(--muted); }
+
+/* ---- Seal grid ---- */
+.seal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.8rem;
+}
+.seal-card {
+  position: relative;
+  background: var(--ink-2);
+  border: 1px solid rgba(147, 160, 180, 0.2);
+  border-radius: var(--radius);
+  padding: 0.9rem;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.seal-card:hover { transform: translateY(-2px); border-color: var(--chakra-dim); }
+.seal-card .emoji { font-size: 2rem; }
+.seal-card .kanji { position: absolute; top: 0.5rem; right: 0.7rem; color: var(--muted); font-size: 0.95rem; }
+.seal-card .name { font-weight: 600; margin-top: 0.3rem; }
+.seal-card .romaji { color: var(--muted); font-size: 0.8rem; }
+.seal-card .best { font-size: 0.78rem; color: var(--chakra); margin-top: 0.35rem; }
+.seal-card.done { border-color: rgba(111, 220, 140, 0.45); }
+.seal-card.done::after {
+  content: "✓";
+  position: absolute;
+  top: 0.4rem;
+  left: 0.6rem;
+  color: var(--good);
+  font-weight: 700;
+}
+.seal-card .cal-tag { font-size: 0.72rem; color: var(--good); margin-top: 0.3rem; }
+
+/* ---- Jutsu list ---- */
+.jutsu-list { display: flex; flex-direction: column; gap: 0.7rem; }
+.jutsu-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--ink-2);
+  border: 1px solid rgba(147, 160, 180, 0.2);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  cursor: pointer;
+}
+.jutsu-card:hover { border-color: var(--chakra-dim); }
+.jutsu-card.locked { opacity: 0.45; cursor: not-allowed; }
+.jutsu-card .jname { font-weight: 600; }
+.jutsu-card .jname .romaji { color: var(--muted); font-weight: 400; font-size: 0.82rem; margin-left: 0.4rem; }
+.jutsu-card .blurb { color: var(--muted); font-size: 0.85rem; margin-top: 0.15rem; }
+.jutsu-card .seq-preview { margin-left: auto; font-size: 1.1rem; letter-spacing: 0.15em; white-space: nowrap; }
+.jutsu-card .grade { font-size: 1.3rem; font-weight: 800; min-width: 2rem; text-align: center; }
+.grade.S { color: #ffd54f; } .grade.A { color: var(--good); }
+.grade.B { color: var(--chakra); } .grade.C { color: var(--muted); }
+.jutsu-rank-tag {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  border: 1px solid rgba(147, 160, 180, 0.3);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+/* ---- Training ---- */
+.back { margin-bottom: 1rem; }
+.train-layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.2rem; }
+@media (max-width: 860px) { .train-layout { grid-template-columns: 1fr; } }
+
+.cam-wrap {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(79, 195, 247, 0.25);
+}
+.cam-wrap video, .cam-wrap canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.cam-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  background: rgba(16, 20, 28, 0.75);
+  font-size: 0.95rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.meter-wrap { display: flex; align-items: center; gap: 0.8rem; margin-top: 0.8rem; }
+.meter {
+  flex: 1;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--ink-2);
+  overflow: hidden;
+  border: 1px solid rgba(147, 160, 180, 0.2);
+}
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--chakra-dim), var(--chakra));
+  transition: width 0.12s linear;
+}
+.meter-fill.hot { background: linear-gradient(90deg, var(--chakra), var(--good)); }
+.meter-label { min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; }
+
+.drill-panel {
+  background: var(--ink-2);
+  border: 1px solid rgba(147, 160, 180, 0.2);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.seq-strip { display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: center; }
+.seq-strip .step {
+  font-size: 1.3rem;
+  opacity: 0.35;
+  padding: 0.2rem 0.3rem;
+  border-radius: 8px;
+}
+.seq-strip .step.current {
+  opacity: 1;
+  background: rgba(79, 195, 247, 0.15);
+  outline: 1px solid var(--chakra);
+}
+.seq-strip .step.done { opacity: 0.9; filter: none; }
+.seq-strip .step.done::after { content: "✓"; font-size: 0.7rem; color: var(--good); vertical-align: top; }
+
+.target-card { text-align: center; }
+.target-card .emoji { font-size: 3.2rem; }
+.target-card .kanji { font-size: 1.6rem; color: var(--chakra); margin-left: 0.4rem; }
+.target-card h3 { margin: 0.3rem 0 0.1rem; }
+.target-card .romaji { color: var(--muted); font-size: 0.85rem; }
+.target-card .hint { color: var(--muted); font-size: 0.88rem; margin-top: 0.6rem; line-height: 1.45; }
+
+#hold-ring-wrap { position: relative; width: 120px; height: 120px; }
+.hold-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: rgba(147, 160, 180, 0.2); stroke-width: 8; }
+.ring-fg {
+  fill: none;
+  stroke: var(--chakra);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 326.7;
+  stroke-dashoffset: 326.7;
+}
+.ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.drill-hint { color: var(--muted); text-align: center; min-height: 2.4em; font-size: 0.9rem; }
+
+/* ---- Leaderboard ---- */
+.board { width: 100%; border-collapse: collapse; }
+.board th, .board td { text-align: left; padding: 0.6rem 0.8rem; }
+.board thead th { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.board tbody tr { background: var(--ink-2); }
+.board tbody tr:nth-child(odd) { background: rgba(26, 34, 48, 0.55); }
+.board td:last-child { color: var(--flame); font-weight: 600; }
+
+/* ---- Settings ---- */
+.settings-actions { display: flex; gap: 0.8rem; margin-top: 1.4rem; }
+
+/* ---- Auth modal ---- */
+dialog {
+  background: var(--ink-2);
+  color: var(--text);
+  border: 1px solid rgba(79, 195, 247, 0.3);
+  border-radius: var(--radius);
+  padding: 1.6rem;
+  min-width: 320px;
+}
+dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+#auth-form { display: flex; flex-direction: column; gap: 0.8rem; }
+#auth-form h3 { margin: 0 0 0.2rem; }
+#auth-form input {
+  font: inherit;
+  padding: 0.55rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(147, 160, 180, 0.3);
+  background: var(--ink);
+  color: var(--text);
+}
+.modal-actions { display: flex; gap: 0.6rem; }
+.modal-actions button { flex: 1; }
+.error { color: #ff9b9b; font-size: 0.85rem; min-height: 1.2em; margin: 0; }
+
+/* ---- Toast ---- */
+.toast {
+  position: fixed;
+  bottom: 1.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink-2);
+  border: 1px solid var(--chakra);
+  border-radius: 999px;
+  padding: 0.7rem 1.4rem;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  font-weight: 600;
+}
