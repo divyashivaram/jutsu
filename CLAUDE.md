@@ -57,6 +57,10 @@ runs `.github/workflows/deploy-pages.yml`, which publishes `frontend/` to Pages 
 build) with `config.js` rewritten to `BACKEND = false` — guest mode only, no accounts or
 leaderboard. Nothing to run by hand; the site follows `main`.
 
+The workflow pins `actions/checkout@v4`, `configure-pages@v5`, `upload-pages-artifact@v3`,
+`deploy-pages@v4`. These target Node 20, which GitHub has deprecated — runs succeed but log
+a warning while the runner forces Node 24. Bump the pins when GitHub ships replacements.
+
 ## Conventions & decisions
 
 - **Port 8110** (house rule: never 8000 or 3000–3999). No Docker: single process + SQLite,
