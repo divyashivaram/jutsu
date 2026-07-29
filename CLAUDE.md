@@ -51,10 +51,11 @@ uv run pytest
 
 ## Static deploy (divyashivaram.in/jutsu)
 
-`scripts/deploy-pages.sh` mirrors `frontend/` into the public `divyashivaram/jutsu` repo
-(GitHub Pages, main branch, root — the divyashivaram.github.io CNAME puts project sites
-under divyashivaram.in) with `config.js` rewritten to `BACKEND = false`. That repo is a
-build artifact — never edit it directly. Re-run the script after any frontend change.
+This repo *is* the deploy repo: `origin` is the public `divyashivaram/jutsu`, and the
+divyashivaram.github.io CNAME puts project sites under divyashivaram.in. Pushing to `main`
+runs `.github/workflows/deploy-pages.yml`, which publishes `frontend/` to Pages (Actions
+build) with `config.js` rewritten to `BACKEND = false` — guest mode only, no accounts or
+leaderboard. Nothing to run by hand; the site follows `main`.
 
 ## Conventions & decisions
 
